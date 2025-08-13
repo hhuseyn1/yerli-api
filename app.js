@@ -36,8 +36,6 @@ app.get('/health', (req, res) => {
   res.status(200).json({
     success: true,
     message: 'Server is running!',
-    timestamp: new Date().toISOString(),
-    environment: process.env.NODE_ENV || 'development'
   });
 });
 
@@ -51,7 +49,6 @@ app.get('/', (req, res) => {
     endpoints: {
       artists: '/api/artists',
       projects: '/api/projects',
-      health: '/health'
     }
   });
 });
@@ -92,8 +89,7 @@ app.use((err, req, res, next) => {
   
   res.status(err.status || 500).json({
     success: false,
-    message: err.message || 'Internal Server Error',
-    ...(process.env.NODE_ENV === 'development' && { stack: err.stack })
+    message: err.message || 'Internal Server Error'
   });
 });
 
