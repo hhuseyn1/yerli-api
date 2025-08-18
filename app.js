@@ -9,10 +9,14 @@ const authRoutes = require('./routes/authRoutes');
 const artistRoutes = require('./routes/artistRoutes');
 const projectRoutes = require('./routes/projectRoutes');
 const emailRoutes = require('./routes/emailRoutes');
+const { crossOriginResourcePolicy } = require('helmet');
 
 const app = express();
 
-app.use(helmet());
+app.use(helmet(
+    crossOriginResourcePolicy = false
+));
+
 app.use(cors());
 app.use(morgan('combined'));
 app.use(express.json({ limit: '10mb' }));

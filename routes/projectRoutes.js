@@ -1,5 +1,6 @@
 const express = require('express');
 const router = express.Router();
+const { protect } = require('../middlewares/auth_middleware');
 
 const {
   createProject,
@@ -14,13 +15,13 @@ const {
 const {
   validateProject,
   validateObjectId
-} = require('../middlewares/validation');
+} = require('../middlewares/validation_middleware');
 
-router.post('/', validateProject, createProject);
+router.post('/', protect, validateProject, createProject);
 router.get('/', getAllProjects);
 router.get('/:id', validateObjectId, getProjectById);
-router.put('/:id', validateObjectId, validateProject, updateProject);
-router.delete('/:id', validateObjectId, deleteProject);
+router.put('/:id', protect, validateObjectId, validateProject, updateProject);
+router.delete('/:id', protect, validateObjectId, deleteProject);
 
 router.get('/search', searchProjects);
 router.get('/category/:category', getProjectsByCategory);
