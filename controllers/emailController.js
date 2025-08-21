@@ -1,72 +1,71 @@
-const { sendAdminNotification, sendUserConfirmation } = require('../services/emailService');
-const ProjectRequest = require('../models/projectRequest');
+const nodemailer = require('nodemailer');
+const EmailRequest = require('../models/emailRequests'); 
 
-const send = async (req, res) => {
-  try {
-    const { name, email, description } = req.body;
+const transporter = nodemailer.createTransport({
+  host: process.env.EMAIL_HOST,
+  port: process.env.EMAIL_PORT,
+  secure: false,
+  auth: {
+    user: process.env.EMAIL_USER,
+    pass: process.env.EMAIL_PASS
+  }
+});
 
-    if (!name || !email || !description) {
-      return res.status(400).json({
-        success: false,
-        message: 'Missing required fields: name, email, or description'
-      });
-    }
-
-    const emailRegex = /^\w+([.-]?\w+)*@\w+([.-]?\w+)*(\.\w{2,3})+$/;
-    if (!emailRegex.test(email)) {
-      return res.status(400).json({
-        success: false,
-        message: 'Please provide a valid email address'
-      });
-    }
-
-    const projectRequest = new ProjectRequest({
-      name,
-      email,
-      description
-    });
-
-    const savedRequest = await projectRequest.save();
-
-    // Admin-ə bildiriş göndər
+const emailController = {
+  // Send email
+  send: async (req, res) => {
     try {
-      await sendAdminNotification({
-        name,
-        email,
-        description,
-        id: savedRequest._id
-      });
-    } catch (adminEmailError) {
-      console.error('Admin email error:', adminEmailError.message);
-    }
-
-    // İstifadəçiyə təsdiq maili göndər
-    try {
-      await sendUserConfirmation({ name, email });
-    } catch (userEmailError) {
-      console.error('User email error:', userEmailError.message);
-    }
-
-    return res.status(200).json({
-      success: true,
-      message: 'Request sent successfully',
-      data: {
-        id: savedRequest._id,
-        status: savedRequest.status,
-        createdAt: savedRequest.createdAt
+      const { name, email, description } = req.body;
+      
+      if (!name || !email || !description) {
+        return res.status(400).json({ 
+          success: false, 
+          message: 'Missing required fields: name, email, or description' 
+        });
       }
-    });
 
-  } catch (error) {
-    console.error('Error:', error);
-    
-    return res.status(500).json({
-      success: false,
-      message: 'Internal server error'
-    });
+      // Create email request record
+      const emailRequest = new EmailRequest({ name, email, description });
+      await emailRequest.save();
+
+      // Send email (optional - uncomment if you want to actually send emails)
+      /*
+      try {
+        await transporter.sendMail({
+          from: process.env.EMAIL_USER,
+          to: process.env.EMAIL_USER, // Send to admin
+          subject: `New Contact Form Submission from ${name}`,
+          html: `
+            <h3>New Contact Form Submission</h3>
+            <p><strong>Name:</strong> ${name}</p>
+            <p><strong>Email:</strong> ${email}</p>
+            <p><strong>Message:</strong></p>
+            <p>${description}</p>
+          `,
+          replyTo: email
+        });
+        
+        emailRequest.status = 'sent';
+        await emailRequest.save();
+      } catch (emailError) {
+        emailRequest.status = 'failed';
+        await emailRequest.save();
+      }
+      */
+
+      res.json({
+        success: true,
+        data: {
+          id: emailRequest._id,
+          status: emailRequest.status,
+          createdAt: emailRequest.createdAt
+        }
+      });
+    } catch (error) {
+      console.error('Email send error:', error);
+      res.status(500).json({ success: false, message: 'Internal server error' });
+    }
   }
 };
 
-module.exports = { 
-  send
-};
+module.exports = emailController;

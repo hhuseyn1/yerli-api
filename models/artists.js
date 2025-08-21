@@ -30,4 +30,7 @@ const artistSchema = new mongoose.Schema({
   timestamps: true
 });
 
+// Index for search functionality
+artistSchema.index({ name: 'text' });
+
 module.exports = mongoose.model('Artist', artistSchema);

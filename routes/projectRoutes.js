@@ -1,29 +1,16 @@
 const express = require('express');
+const projectController = require('../controllers/projectController');
+const authMiddleware = require('../middlewares/auth');
+const { schemas, validate } = require('../middlewares/validation');
+
 const router = express.Router();
-const { protect } = require('../middlewares/auth_middleware');
 
-const {
-  createProject,
-  getAllProjects,
-  getProjectById,
-  updateProject,
-  deleteProject,
-  searchProjects,
-  getProjectsByCategory
-} = require('../controllers/projectController');
-
-const {
-  validateProject,
-  validateObjectId
-} = require('../middlewares/validation_middleware');
-
-router.post('/', protect, validateProject, createProject);
-router.get('/', getAllProjects);
-router.get('/:id', validateObjectId, getProjectById);
-router.put('/:id', protect, validateObjectId, validateProject, updateProject);
-router.delete('/:id', protect, validateObjectId, deleteProject);
-
-router.get('/search', searchProjects);
-router.get('/category/:category', getProjectsByCategory);
+router.get('/search', projectController.search);
+router.get('/category/:category', projectController.getByCategory);
+router.post('/', authMiddleware, validate(schemas.project), projectController.create);
+router.get('/', projectController.getAll);
+router.get('/:id', projectController.getById);
+router.put('/:id', authMiddleware, validate(schemas.project), projectController.update);
+router.delete('/:id', authMiddleware, projectController.delete);
 
 module.exports = router;

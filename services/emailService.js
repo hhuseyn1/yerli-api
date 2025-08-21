@@ -1,5 +1,5 @@
 const { sendEmail } = require('../services/emailService');
-const ProjectRequest = require('../models/projectRequest');
+const Project = require('../models/projects');
 
 const send = async (req, res) => {
   try {
@@ -20,13 +20,13 @@ const send = async (req, res) => {
       });
     }
 
-    const projectRequest = new ProjectRequest({
+    const project = new Project({
       name,
       email,
       description
     });
 
-    const savedRequest = await projectRequest.save();
+    const savedRequest = await project.save();
 
     try {
       await sendEmail({
